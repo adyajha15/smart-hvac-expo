@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from "react-native";
 import { useTheme } from "../components/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -9,7 +9,7 @@ type ChartType = "Room Temp Over Time" | "Outdoor vs. Indoor Temp" | "Cost Saved
 const chartTypes: ChartType[] = ["Room Temp Over Time", "Outdoor vs. Indoor Temp", "Cost Saved"];
 
 const StatsScreen = () => {
-  const { theme } = useTheme();
+  const { theme } = useTheme(); // Assuming useTheme provides a theme
   const [selectedTimeFrame, setSelectedTimeFrame] = useState("Weekly");
   const [comfortLevel, setComfortLevel] = useState(50);
   const comfortAnim = useRef(new Animated.Value(50)).current;
@@ -89,9 +89,19 @@ const StatsScreen = () => {
               <XAxis dataKey="time" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey={title === "Outdoor vs. Indoor Temp" ? "outdoor" : "value"} stroke="#FF6384" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey={title === "Outdoor vs. Indoor Temp" ? "outdoor" : "value"}
+                stroke="#FF6384"
+                strokeWidth={2}
+              />
               {title === "Outdoor vs. Indoor Temp" && (
-                <Line type="monotone" dataKey="indoor" stroke="#36A2EB" strokeWidth={2} />
+                <Line
+                  type="monotone"
+                  dataKey="indoor"
+                  stroke="#36A2EB"
+                  strokeWidth={2}
+                />
               )}
             </LineChart>
           </ResponsiveContainer>
@@ -105,11 +115,21 @@ const StatsScreen = () => {
           <Animated.View
             style={[
               styles.thermometerFill,
-              { height: comfortAnim.interpolate({ inputRange: [0, 100], outputRange: [0, 200] }) },
+              {
+                height: comfortAnim.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [0, 200],
+                }),
+              },
             ]}
           />
         </View>
-        <MaterialIcons name={getMoodIcon()} size={40} color="#ff5733" style={styles.moodIcon} />
+        <MaterialIcons
+          name={getMoodIcon()}
+          size={40}
+          color="#ff5733"
+          style={styles.moodIcon}
+        />
         <Text style={{ fontSize: 18, fontWeight: "bold", color: "#ff5733" }}>
           Comfort Level: {Math.round(comfortLevel)}
         </Text>
