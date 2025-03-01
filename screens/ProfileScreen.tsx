@@ -1,13 +1,18 @@
 import React from "react";
 import { View, StyleSheet, ScrollView, Text as RNText, Switch as RNSwitch, TouchableOpacity } from "react-native";
 import { useTheme } from "../components/ThemeContext";
-import { NavigationProp } from "@react-navigation/native"; // Import NavigationProp for typing
+import type { StackNavigationProp } from "@react-navigation/stack";
 
-// Define the type for navigation prop
-type ProfileScreenNavigationProp = NavigationProp<any>; // Replace `any` with your specific screen name if you have a stack navigator
+// Define the navigation stack
+type RootStackParamList = {
+  Profile: undefined;
+  Login: undefined;
+};
+
+type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
 
 interface ProfileScreenProps {
-  navigation: ProfileScreenNavigationProp; // Type the navigation prop
+  navigation: ProfileScreenNavigationProp;
 }
 
 // ProfileScreen Component
@@ -20,21 +25,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       backgroundColor: theme === "dark" ? "#121212" : "#F4F4F4",
       padding: 20,
     },
-    section: {
-      marginBottom: 25,
-    },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 10,
-    },
     button: {
       marginTop: 10,
       paddingVertical: 12,
       paddingHorizontal: 20,
       borderRadius: 30,
-      backgroundColor: theme === "dark" ? "#6200EE" : "#6200EE",
+      backgroundColor: "#6200EE",
       alignItems: "center",
       justifyContent: "center",
     },
@@ -58,72 +54,31 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       color: theme === "dark" ? "#FFF" : "#333",
       marginBottom: 10,
     },
-    text: {
-      fontSize: 16,
-      color: theme === "dark" ? "#BBB" : "#333",
-      marginBottom: 8,
-    },
     rowText: {
       fontSize: 16,
       color: theme === "dark" ? "#BBB" : "#333",
     },
-    switch: {
-      marginLeft: 10,
-    },
-    listItem: {
-      paddingVertical: 10,
-      borderBottomWidth: 1,
-      borderColor: theme === "dark" ? "#444" : "#ddd",
-    },
   });
-
-  const connectedACs = [
-    { id: 1, name: "AC 1" },
-    { id: 2, name: "AC 2" },
-    { id: 3, name: "AC 3" },
-  ];
 
   return (
     <ScrollView style={styles.container}>
       {/* User Information Card */}
       <View style={styles.card}>
         <RNText style={styles.headerText}>User Information</RNText>
-        <RNText style={styles.text}>Name: John Doe</RNText>
-        <RNText style={styles.text}>Email: john.doe@example.com</RNText>
+        <RNText>Name: John Doe</RNText>
+        <RNText>Email: john.doe@example.com</RNText>
         <TouchableOpacity style={styles.button} onPress={() => console.log("Edit Profile")}>
           <RNText style={styles.buttonText}>Edit Profile</RNText>
-        </TouchableOpacity>
-      </View>
-
-      {/* HVAC Units Card */}
-      <View style={styles.card}>
-        <RNText style={styles.headerText}>All HVAC</RNText>
-        {connectedACs.map((ac) => (
-          <View key={ac.id} style={styles.listItem}>
-            <RNText style={styles.rowText}>{ac.name}</RNText>
-          </View>
-        ))}
-        <TouchableOpacity style={styles.button} onPress={() => console.log("Manage HVAC Units")}>
-          <RNText style={styles.buttonText}>Manage HVAC Units</RNText>
         </TouchableOpacity>
       </View>
 
       {/* Settings Card */}
       <View style={styles.card}>
         <RNText style={styles.headerText}>Settings</RNText>
-        <View style={styles.row}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <RNText style={styles.rowText}>Dark Mode</RNText>
-          <RNSwitch value={theme === "dark"} onValueChange={toggleTheme} style={styles.switch} />
+          <RNSwitch value={theme === "dark"} onValueChange={toggleTheme} />
         </View>
-        <TouchableOpacity style={styles.button} onPress={() => console.log("Change Language")}>
-          <RNText style={styles.buttonText}>Change Language</RNText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => console.log("Clear Cache")}>
-          <RNText style={styles.buttonText}>Clear Cache</RNText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => console.log("Clear History")}>
-          <RNText style={styles.buttonText}>Clear History</RNText>
-        </TouchableOpacity>
       </View>
 
       {/* Log Out Button */}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Animated } from "react-native";
-import { LineChart } from "react-native-chart-kit";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Dimensions } from "react-native";
 import { useTheme } from "../components/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 type ChartType = "Room Temp Over Time" | "Outdoor vs. Indoor Temp" | "Cost Saved";
 
@@ -31,24 +31,31 @@ const StatsScreen = () => {
   const getChartData = (type: ChartType) => {
     switch (type) {
       case "Room Temp Over Time":
-        return {
-          labels: ["1H", "6H", "12H", "1D", "1W"],
-          datasets: [{ data: [22, 24, 23, 21, 20] }],
-        };
+        return [
+          { time: "1H", value: 22 },
+          { time: "6H", value: 24 },
+          { time: "12H", value: 23 },
+          { time: "1D", value: 21 },
+          { time: "1W", value: 20 },
+        ];
       case "Outdoor vs. Indoor Temp":
-        return {
-          labels: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-          datasets: [
-            { data: [30, 32, 31, 29, 28], color: (opacity = 1) => `rgba(255, 99, 132, ${opacity})` }, // Outdoor
-            { data: [22, 23, 24, 23, 22], color: (opacity = 1) => `rgba(54, 162, 235, ${opacity})` }, // Indoor
-          ],
-        };
+        return [
+          { time: "Mon", outdoor: 30, indoor: 22 },
+          { time: "Tue", outdoor: 32, indoor: 23 },
+          { time: "Wed", outdoor: 31, indoor: 24 },
+          { time: "Thu", outdoor: 29, indoor: 23 },
+          { time: "Fri", outdoor: 28, indoor: 22 },
+        ];
       case "Cost Saved":
       default:
-        return {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-          datasets: [{ data: [2000, 4500, 2800, 8000, 9900, 4300] }],
-        };
+        return [
+          { time: "Jan", value: 2000 },
+          { time: "Feb", value: 4500 },
+          { time: "Mar", value: 2800 },
+          { time: "Apr", value: 8000 },
+          { time: "May", value: 9900 },
+          { time: "Jun", value: 4300 },
+        ];
     }
   };
 
@@ -59,10 +66,7 @@ const StatsScreen = () => {
         {["Weekly", "Monthly", "Yearly"].map((option) => (
           <TouchableOpacity
             key={option}
-            style={[
-              styles.toggleButton,
-              selectedTimeFrame === option && styles.selectedButton,
-            ]}
+            style={[styles.toggleButton, selectedTimeFrame === option && styles.selectedButton]}
             onPress={() => setSelectedTimeFrame(option)}
           >
             <Text style={styles.toggleText}>{option}</Text>
@@ -80,22 +84,17 @@ const StatsScreen = () => {
       {chartTypes.map((title) => (
         <View key={title} style={styles.chartContainer}>
           <Text style={styles.sectionTitle}>{title}</Text>
-          <LineChart
-            data={getChartData(title)}
-            width={Dimensions.get("window").width - 40}
-            height={250}
-            yAxisLabel={title === "Cost Saved" ? "₹" : ""}
-            yAxisSuffix={title.includes("Temp") ? "°C" : ""}
-            chartConfig={{
-              backgroundGradientFrom: theme === "dark" ? "#1E1E1E" : "#FFFFFF",
-              backgroundGradientTo: theme === "dark" ? "#1E1E1E" : "#FFFFFF",
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              decimalPlaces: 0,
-            }}
-            bezier
-            style={styles.chart}
-          />
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={getChartData(title)}>
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey={title === "Outdoor vs. Indoor Temp" ? "outdoor" : "value"} stroke="#FF6384" strokeWidth={2} />
+              {title === "Outdoor vs. Indoor Temp" && (
+                <Line type="monotone" dataKey="indoor" stroke="#36A2EB" strokeWidth={2} />
+              )}
+            </LineChart>
+          </ResponsiveContainer>
         </View>
       ))}
 
@@ -133,9 +132,8 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     marginBottom: 20,
-  },
-  chart: {
-    borderRadius: 16,
+    width: "100%",
+    height: 250,
   },
   toggleContainer: {
     flexDirection: "row",

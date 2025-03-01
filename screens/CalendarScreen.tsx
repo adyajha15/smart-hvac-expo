@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Animated, ScrollView } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { LineChart } from "react-native-chart-kit";
 import { useTheme } from "../components/ThemeContext";
 import { Easing } from "react-native-reanimated";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const CalendarScreen = () => {
   const { theme } = useTheme();
@@ -32,6 +32,16 @@ const CalendarScreen = () => {
       useNativeDriver: true,
     }).start();
   };
+
+  const energyData = [
+    { time: "12 AM", value: 30 },
+    { time: selectedTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), value: 60 },
+  ];
+
+  const costData = [
+    { time: "12 AM", value: 5 },
+    { time: selectedTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), value: 15 },
+  ];
 
   const styles = StyleSheet.create({
     container: {
@@ -62,6 +72,8 @@ const CalendarScreen = () => {
     graphContainer: {
       alignItems: "center",
       marginTop: 20,
+      width: "100%",
+      height: 250,
     },
     scrollContainer: {
       flexGrow: 1,
@@ -103,46 +115,30 @@ const CalendarScreen = () => {
           />
         )}
 
+        {/* Energy Efficiency Chart */}
         <View style={styles.graphContainer}>
           <Text style={styles.sectionTitle}>Energy Efficiency</Text>
-          <LineChart
-            data={{
-              labels: ["12 AM", selectedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })],
-              datasets: [{ data: [30, 60] }],
-            }}
-            width={320}
-            height={200}
-            chartConfig={{
-              backgroundColor: "#6200EE",
-              backgroundGradientFrom: "#BB86FC",
-              backgroundGradientTo: "#6200EE",
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: () => "#FFFFFF",
-            }}
-            style={{ borderRadius: 8 }}
-          />
+          <ResponsiveContainer width="90%" height="100%">
+            <LineChart data={energyData}>
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke="#BB86FC" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
         </View>
 
+        {/* Cost Saved Chart */}
         <View style={styles.graphContainer}>
           <Text style={styles.sectionTitle}>Cost Saved</Text>
-          <LineChart
-            data={{
-              labels: ["12 AM", selectedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })],
-              datasets: [{ data: [5, 15] }],
-            }}
-            width={320}
-            height={200}
-            chartConfig={{
-              backgroundColor: "#6200EE",
-              backgroundGradientFrom: "#BB86FC",
-              backgroundGradientTo: "#6200EE",
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: () => "#FFFFFF",
-            }}
-            style={{ borderRadius: 8 }}
-          />
+          <ResponsiveContainer width="90%" height="100%">
+            <LineChart data={costData}>
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke="#BB86FC" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
         </View>
 
         <Animated.View style={styles.button}>
