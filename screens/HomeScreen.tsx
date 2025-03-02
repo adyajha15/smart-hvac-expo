@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, StyleSheet, Switch, Animated } from "react-native";
 import { Button } from "react-native-elements";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons } from "@expo/vector-icons";
+import axios from 'axios';
 
 const HomeScreen = () => {
   const [selectedAC, setSelectedAC] = useState("1");
@@ -12,7 +13,15 @@ const HomeScreen = () => {
     { id: "3", name: "AC 3", temp: 23, mode: "Fan", isOn: true },
   ]);
 
+  const [weatherData, setWeatherData] = useState({
+    temperature: '--',
+    humidity: '--',
+    windSpeed: '--',
+    precipitation: '--',
+  });
+
   const animatedValue = new Animated.Value(0);
+  
   const animateChange = () => {
     Animated.sequence([
       Animated.timing(animatedValue, { toValue: 1, duration: 300, useNativeDriver: true }),
@@ -44,6 +53,39 @@ const HomeScreen = () => {
       )
     );
   };
+
+  const fetchWeatherData = async () => {
+    const latitude = '28.7041'; // Example latitude for New Delhi
+    const longitude = '77.1025'; // Example longitude for New Delhi
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,windspeed_10m,precipitation`;
+
+    try {
+      const response = await axios.get(url);
+      const data = response.data;
+      const currentWeather = data.current_weather;
+      const hourlyWeather = data.hourly;
+
+      // Extract relevant data
+      const temperature = currentWeather.temperature;
+      const humidity = hourlyWeather.relativehumidity_2m[0];
+      const windSpeed = hourlyWeather.windspeed_10m[0];
+      const precipitation = hourlyWeather.precipitation[0];
+
+      // Update weather data state
+      setWeatherData({
+        temperature,
+        humidity,
+        windSpeed,
+        precipitation,
+      });
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeatherData();
+  }, []);
 
   const selectedAcUnit = acUnits.find((unit) => unit.id === selectedAC);
 
@@ -87,12 +129,30 @@ const HomeScreen = () => {
       {/* Real-Time Weather Section with Improved UI */}
       <View style={styles.weatherContainer}>
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weatherScroll}>
-          <View style={styles.weatherCard}><Text style={styles.weatherTitle}>Air Quality Index</Text><Text style={styles.weatherValue}>--</Text></View>
-          <View style={styles.weatherCard}><Text style={styles.weatherTitle}>Temperature</Text><Text style={styles.weatherValue}>--°C</Text></View>
-          <View style={styles.weatherCard}><Text style={styles.weatherTitle}>Forecast</Text><Text style={styles.weatherValue}>--</Text></View>
-          <View style={styles.weatherCard}><Text style={styles.weatherTitle}>Precipitation</Text><Text style={styles.weatherValue}>--%</Text></View>
-          <View style={styles.weatherCard}><Text style={styles.weatherTitle}>Humidity</Text><Text style={styles.weatherValue}>--%</Text></View>
-          <View style={styles.weatherCard}><Text style={styles.weatherTitle}>Wind Speed</Text><Text style={styles.weatherValue}>-- km/h</Text></View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Air Quality Index</Text>
+            <Text style={styles.weatherValue}>--</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Temperature</Text>
+            <Text style={styles.weatherValue}>{weatherData.temperature}°C</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Forecast</Text>
+            <Text style={styles.weatherValue}>--</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Precipitation</Text>
+            <Text style={styles.weatherValue}>{weatherData.precipitation}%</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Humidity</Text>
+            <Text style={styles.weatherValue}>{weatherData.humidity}%</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Wind Speed</Text>
+            <Text style={styles.weatherValue}>{weatherData.windSpeed} km/h</Text>
+          </View>
         </ScrollView>
       </View>
     </ScrollView>

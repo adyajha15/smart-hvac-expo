@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { View, ScrollView, TextStyle, ViewStyle } from "react-native"
+import { useState, useEffect, useRef } from "react"
+import { View, ScrollView, TextStyle, ViewStyle, Alert } from "react-native"
 import { Button, Text, ListItem, Switch } from "react-native-elements"
 import { useTheme } from "../components/ThemeContext"
 import { Ionicons } from "@expo/vector-icons"
+import axios from 'axios'
 
 // Define AC unit type with an additional power state
 type ACUnit = {
@@ -12,7 +13,6 @@ type ACUnit = {
   name: string
   temp: number
   energy: number
-  power: number
   voltage: number
   current: number
   frequency: number
@@ -24,26 +24,104 @@ const AdminDashboardScreen = () => {
   const theme = themeContext?.theme ?? "light"
 
   const [acUnits, setAcUnits] = useState<ACUnit[]>([
-    { id: 1, name: "AC 1", temp: 22, energy: 1.5, power: 1000, voltage: 220, current: 4.5, frequency: 50, isOn: true },
-    { id: 2, name: "AC 2", temp: 24, energy: 1.2, power: 800, voltage: 220, current: 3.6, frequency: 50, isOn: true },
-    { id: 3, name: "AC 3", temp: 23, energy: 1.8, power: 1200, voltage: 220, current: 5.4, frequency: 50, isOn: false },
+    { id: 1, name: "AC 1", temp: 22, energy: 1.5, voltage: 220, current: 4.5, frequency: 50, isOn: true },
+    { id: 2, name: "AC 2", temp: 24, energy: 1.2, voltage: 220, current: 3.6, frequency: 50, isOn: true },
+    { id: 3, name: "AC 3", temp: 23, energy: 1.8, voltage: 220, current: 5.4, frequency: 50, isOn: false },
   ])
 
-  const adjustTemperature = (id: number, adjustment: number) => {
-    setAcUnits((prevUnits) =>
-      prevUnits.map((unit) =>
-        unit.id === id ? { ...unit, temp: unit.temp + adjustment } : unit
-      )
-    )
+  const token = "YOUR_BEARER_TOKEN"; // Replace with your actual token
+  const deviceId = "test_device"; // Replace with your actual device ID
+  const zoneId = "main"; // Replace with your actual zone ID
+
+  useEffect(() => {
+    fetchCurrentTemperature();
+  }, []);
+
+  const fetchCurrentTemperature = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/temperature/current`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          device_id: deviceId,
+          zone_id: zoneId,
+        },
+      });
+      // Update the AC units with the current temperature
+      setAcUnits((prevUnits) =>
+        prevUnits.map((unit) => ({
+          ...unit,
+          temp: response.data.temperature, // Set the current temperature
+        }))
+      );
+    } catch (error) {
+      console.error('Error fetching current temperature:', error);
+      Alert.alert('Error', 'Failed to fetch current temperature.');
+    }
   }
 
-  const togglePower = (id: number) => {
+  const adjustTemperature = async (id: number, adjustment: number) => {
     setAcUnits((prevUnits) =>
-      prevUnits.map((unit) =>
-        unit.id === id ? { ...unit, isOn: !unit.isOn } : unit
-      )
-    )
+      prevUnits.map((unit) => {
+        if (unit.id === id) {
+          const newTemp = unit.temp + adjustment;
+          // Call the API to set the new temperature
+          setTemperature(unit.id, newTemp, "cool"); // Pass a string for the mode
+          return { ...unit, temp: newTemp };
+        }
+        return unit;
+      })
+    );
   }
+  
+  const setTemperature = async (id: number, temperature: number, mode: string) => {
+    try {
+      const response = await axios.post(`http://localhost:8000/api/control/temperature`, {
+        system_id: "test_system", // Replace with your actual system ID
+        temperature: temperature,
+        mode: mode, // Ensure this is a string
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log('Temperature set successfully:', response.data);
+    } catch (error) {
+      console.error('Error setting temperature:', error);
+      Alert.alert('Error', 'Failed to set temperature.');
+    }
+  }
+
+  const togglePower = async (id: number) => {
+  setAcUnits((prevUnits) =>
+    prevUnits.map((unit) => {
+      if (unit.id === id) {
+        const newState = !unit.isOn; // This is a boolean
+        controlPower(unit.id, newState); // Ensure controlPower accepts a boolean
+        return { ...unit, isOn: newState };
+      }
+      return unit;
+    })
+  );
+}
+
+const controlPower = async (id: number, state: boolean) => { // Ensure state is boolean
+  try {
+    const response = await axios.post(`http://localhost:8000/api/control/power`, {
+      system_id: "test_system", // Replace with your actual system ID
+      state: state, // This should be a boolean
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log('Power state changed successfully:', response.data);
+  } catch (error) {
+    console.error('Error changing power state:', error);
+    Alert.alert('Error', 'Failed to change power state.');
+  }
+}
 
   return (
     <ScrollView style={styles.container(theme)}>

@@ -1,14 +1,78 @@
 "use client"
 
-import { useState } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal } from "react-native"
+import { useState, useEffect } from "react"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, ActivityIndicator } from "react-native"
 import { useTheme } from "../components/ThemeContext"
 import { DataTable } from "react-native-paper"
+
+const API_BASE_URL = "http://localhost:8000"
+const AUTH_TOKEN = "your_bearer_token_here" // Replace with actual token
+
+// Define AC Data Type
+interface ACData {
+  id: number
+  name: string
+  temp: number
+  energy: number
+  power: number
+  efficiency: number
+  voltage: number
+  current: number
+  frequency: number
+}
 
 const AdminDashboard = () => {
   const { theme } = useTheme()
   const [modalVisible, setModalVisible] = useState(false)
-  const [selectedAC, setSelectedAC] = useState<{ id: number; name: string; temp: number; energy: number; power: number; voltage: number; current: number; frequency: number } | null>(null)
+  const [selectedAC, setSelectedAC] = useState<ACData | null>(null)
+  const [acData, setAcData] = useState<ACData[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchACData()
+  }, [])
+
+  const fetchACData = async () => {
+    try {
+      // Fetch Temperature Data
+      const tempResponse = await fetch(`${API_BASE_URL}/api/temperature/current?device_id=test_device&zone_id=main`, {
+        headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      })
+      const tempData = await tempResponse.json()
+
+      // Fetch System Metrics
+      const metricsResponse = await fetch(`${API_BASE_URL}/api/status/metrics?system_id=test_system`, {
+        headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+      })
+      const metricsData = await metricsResponse.json()
+
+      if (tempData.temperature && metricsData.status === "success") {
+        const updatedACData: ACData[] = [
+          {
+            id: 1,
+            name: "Living Room AC",
+            temp: tempData.temperature,
+            energy: metricsData.data.summary.total_energy,
+            power: metricsData.data.summary.avg_power,
+            efficiency: metricsData.data.summary.efficiency,
+            voltage: 220, // Hardcoded
+            current: 4.5, // Hardcoded
+            frequency: 50, // Hardcoded
+          },
+        ]
+        setAcData(updatedACData)
+      }
+    } catch (error) {
+      console.error("Error fetching AC data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const openModal = (ac: ACData) => {
+    setSelectedAC(ac)
+    setModalVisible(true)
+  }
 
   const styles = StyleSheet.create({
     container: {
@@ -65,56 +129,46 @@ const AdminDashboard = () => {
     },
   })
 
-  const acData = [
-    { id: 1, name: "Living Room AC", temp: 22, energy: 1.5, power: 1000, voltage: 220, current: 4.5, frequency: 50 },
-    { id: 2, name: "Bedroom AC", temp: 24, energy: 1.2, power: 800, voltage: 220, current: 3.6, frequency: 50 },
-    { id: 3, name: "Office AC", temp: 23, energy: 1.8, power: 1200, voltage: 220, current: 5.4, frequency: 50 },
-  ]
-
-  const openModal = (ac: { id: number; name: string; temp: number; energy: number; power: number; voltage: number; current: number; frequency: number }) => {
-    setSelectedAC(ac)
-    setModalVisible(true)
-  }
-
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Admin Dashboard</Text>
-      <DataTable style={styles.table}>
-        <DataTable.Header style={styles.tableHeader}>
-          <DataTable.Title>
-            <Text style={styles.text}>AC Name</Text>
-          </DataTable.Title>
-          <DataTable.Title numeric>
-            <Text style={styles.text}>Temp (°C)</Text>
-          </DataTable.Title>
-          <DataTable.Title>
-            <Text style={styles.text}>Actions</Text>
-          </DataTable.Title>
-        </DataTable.Header>
 
-        {acData.map((ac) => (
-          <DataTable.Row key={ac.id} style={styles.tableRow}>
-            <DataTable.Cell>
-              <Text style={styles.text}>{ac.name}</Text>
-            </DataTable.Cell>
-            <DataTable.Cell numeric>
-              <Text style={styles.text}>{ac.temp}</Text>
-            </DataTable.Cell>
-            <DataTable.Cell>
-              <TouchableOpacity style={styles.button} onPress={() => openModal(ac)}>
-                <Text style={styles.buttonText}>View More</Text>
-              </TouchableOpacity>
-            </DataTable.Cell>
-          </DataTable.Row>
-        ))}
-      </DataTable>
+      {loading ? (
+        <ActivityIndicator size="large" color={theme === "dark" ? "#BB86FC" : "#6200EE"} />
+      ) : (
+        <DataTable style={styles.table}>
+          <DataTable.Header style={styles.tableHeader}>
+            <DataTable.Title>
+              <Text style={styles.text}>AC Name</Text>
+            </DataTable.Title>
+            <DataTable.Title numeric>
+              <Text style={styles.text}>Temp (°C)</Text>
+            </DataTable.Title>
+            <DataTable.Title>
+              <Text style={styles.text}>Actions</Text>
+            </DataTable.Title>
+          </DataTable.Header>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+          {acData.map((ac) => (
+            <DataTable.Row key={ac.id} style={styles.tableRow}>
+              <DataTable.Cell>
+                <Text style={styles.text}>{ac.name}</Text>
+              </DataTable.Cell>
+              <DataTable.Cell numeric>
+                <Text style={styles.text}>{ac.temp}</Text>
+              </DataTable.Cell>
+              <DataTable.Cell>
+                <TouchableOpacity style={styles.button} onPress={() => openModal(ac)}>
+                  <Text style={styles.buttonText}>View More</Text>
+                </TouchableOpacity>
+              </DataTable.Cell>
+            </DataTable.Row>
+          ))}
+        </DataTable>
+      )}
+
+      {/* Modal for Detailed View */}
+      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalView}>
           {selectedAC && (
             <>
@@ -122,6 +176,7 @@ const AdminDashboard = () => {
               <Text style={styles.modalText}>Temperature: {selectedAC.temp}°C</Text>
               <Text style={styles.modalText}>Energy Consumed: {selectedAC.energy} kWh</Text>
               <Text style={styles.modalText}>Power: {selectedAC.power} W</Text>
+              <Text style={styles.modalText}>Efficiency: {selectedAC.efficiency * 100}%</Text>
               <Text style={styles.modalText}>Voltage: {selectedAC.voltage} V</Text>
               <Text style={styles.modalText}>Current: {selectedAC.current} A</Text>
               <Text style={styles.modalText}>Frequency: {selectedAC.frequency} Hz</Text>
@@ -137,4 +192,3 @@ const AdminDashboard = () => {
 }
 
 export default AdminDashboard
-
