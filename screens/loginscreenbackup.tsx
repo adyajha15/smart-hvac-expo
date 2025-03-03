@@ -1,10 +1,8 @@
-import React, { useState } from "react";
-import { View, StyleSheet, TouchableOpacity, TextInput, Alert } from "react-native";
+import React from "react";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Text } from "react-native-elements";
 import { useTheme } from "../components/ThemeContext";
 import { StackNavigationProp } from '@react-navigation/stack';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   LoginScreen: undefined;
@@ -20,29 +18,9 @@ interface Props {
 
 const LoginScreen = ({ navigation }: Props) => {
   const { theme } = useTheme();
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
 
-  const handleLogin = async (userType: "admin" | "user") => {
-    try {
-      // Send POST request to the /token endpoint
-      const response = await axios.post('http://localhost:8000/token', {
-        username,
-        password,
-      });
-
-      // Extract the access token from the response
-      const { access_token } = response.data;
-
-      // Store the token in AsyncStorage
-      await AsyncStorage.setItem('authToken', access_token);
-
-      // Navigate to the appropriate app
-      navigation.navigate(userType === "admin" ? "AdminApp" : "UserApp");;
-    } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Login Failed', 'Invalid username or password.');
-    }
+  const handleLogin = (userType: "admin" | "user") => {
+    navigation.navigate(userType === "admin" ? "AdminApp" : "User App");
   };
 
   const styles = StyleSheet.create({
@@ -57,16 +35,6 @@ const LoginScreen = ({ navigation }: Props) => {
       fontSize: 24,
       marginBottom: 20,
       fontWeight: "bold",
-      color: theme === "dark" ? "#FFFFFF" : "#000000",
-    },
-    input: {
-      width: '100%',
-      padding: 10,
-      marginVertical: 10,
-      borderWidth: 1,
-      borderColor: theme === "dark" ? "#FFFFFF" : "#000000",
-      borderRadius: 5,
-      backgroundColor: theme === "dark" ? "#333333" : "#DDDDDD",
       color: theme === "dark" ? "#FFFFFF" : "#000000",
     },
     boxContainer: {
@@ -98,22 +66,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        placeholderTextColor={theme === "dark" ? "#FFFFFF" : "#000000"}
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor={theme === "dark" ? "#FFFFFF" : "#000000"}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <Text style={styles.title}>Select Login Type</Text>
       <View style={styles.boxContainer}>
         <TouchableOpacity style={styles.box} onPress={() => handleLogin("admin")}>
           <Text style={styles.boxText}>Admin Login</Text>

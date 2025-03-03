@@ -1,53 +1,43 @@
-"use client"
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, ActivityIndicator, Alert } from "react-native";
+import { Text } from "react-native-elements";
+import { useTheme } from "../components/ThemeContext";
+import { DataTable } from "react-native-paper";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, ActivityIndicator } from "react-native"
-import { useTheme } from "../components/ThemeContext"
-import { DataTable } from "react-native-paper"
-
-const API_BASE_URL = "http://localhost:8000"
-const AUTH_TOKEN = "your_bearer_token_here" // Replace with actual token
-
-// Define AC Data Type
-interface ACData {
-  id: number
-  name: string
-  temp: number
-  energy: number
-  power: number
-  efficiency: number
-  voltage: number
-  current: number
-  frequency: number
-}
+const API_BASE_URL = "http://localhost:8000";
 
 const AdminDashboard = () => {
-  const { theme } = useTheme()
-  const [modalVisible, setModalVisible] = useState(false)
-  const [selectedAC, setSelectedAC] = useState<ACData | null>(null)
-  const [acData, setAcData] = useState<ACData[]>([])
-  const [loading, setLoading] = useState(true)
+  const { theme } = useTheme();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedAC, setSelectedAC] = useState<any | null>(null);
+  const [acData, setAcData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchACData()
-  }, [])
+    fetchACData();
+  }, []);
 
   const fetchACData = async () => {
     try {
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem('authToken');
+
       // Fetch Temperature Data
       const tempResponse = await fetch(`${API_BASE_URL}/api/temperature/current?device_id=test_device&zone_id=main`, {
-        headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
-      })
-      const tempData = await tempResponse.json()
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const tempData = await tempResponse.json();
 
       // Fetch System Metrics
       const metricsResponse = await fetch(`${API_BASE_URL}/api/status/metrics?system_id=test_system`, {
-        headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
-      })
-      const metricsData = await metricsResponse.json()
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const metricsData = await metricsResponse.json();
 
       if (tempData.temperature && metricsData.status === "success") {
-        const updatedACData: ACData[] = [
+        const updatedACData = [
           {
             id: 1,
             name: "Living Room AC",
@@ -59,20 +49,21 @@ const AdminDashboard = () => {
             current: 4.5, // Hardcoded
             frequency: 50, // Hardcoded
           },
-        ]
-        setAcData(updatedACData)
+        ];
+        setAcData(updatedACData);
       }
     } catch (error) {
-      console.error("Error fetching AC data:", error)
+      console.error("Error fetching AC data:", error);
+      Alert.alert("Error", "Failed to fetch AC data.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const openModal = (ac: ACData) => {
-    setSelectedAC(ac)
-    setModalVisible(true)
-  }
+  const openModal = (ac: any) => {
+    setSelectedAC(ac);
+    setModalVisible(true);
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -127,7 +118,7 @@ const AdminDashboard = () => {
       textAlign: "center",
       color: theme === "dark" ? "#FFFFFF" : "#000000",
     },
-  })
+  });
 
   return (
     <ScrollView style={styles.container}>
@@ -188,7 +179,7 @@ const AdminDashboard = () => {
         </View>
       </Modal>
     </ScrollView>
-  )
-}
+  );
+};
 
-export default AdminDashboard
+export default AdminDashboard;

@@ -1,35 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { View, ScrollView, TextStyle, ViewStyle, Alert } from "react-native"
-import { Button, Text, ListItem, Switch } from "react-native-elements"
-import { useTheme } from "../components/ThemeContext"
-import { Ionicons } from "@expo/vector-icons"
-import axios from 'axios'
+import { useState, useEffect } from "react";
+import { View, ScrollView, TextStyle, ViewStyle, Alert } from "react-native";
+import { Button, Text, ListItem, Switch } from "react-native-elements";
+import { useTheme } from "../components/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define AC unit type with an additional power state
 type ACUnit = {
-  id: number
-  name: string
-  temp: number
-  energy: number
-  voltage: number
-  current: number
-  frequency: number
-  isOn: boolean // Power state (on/off)
-}
+  id: number;
+  name: string;
+  temp: number;
+  energy: number;
+  voltage: number;
+  current: number;
+  frequency: number;
+  isOn: boolean; // Power state (on/off)
+};
 
 const AdminDashboardScreen = () => {
-  const themeContext = useTheme()
-  const theme = themeContext?.theme ?? "light"
+  const themeContext = useTheme();
+  const theme = themeContext?.theme ?? "light";
 
   const [acUnits, setAcUnits] = useState<ACUnit[]>([
     { id: 1, name: "AC 1", temp: 22, energy: 1.5, voltage: 220, current: 4.5, frequency: 50, isOn: true },
     { id: 2, name: "AC 2", temp: 24, energy: 1.2, voltage: 220, current: 3.6, frequency: 50, isOn: true },
     { id: 3, name: "AC 3", temp: 23, energy: 1.8, voltage: 220, current: 5.4, frequency: 50, isOn: false },
-  ])
+  ]);
 
-  const token = "YOUR_BEARER_TOKEN"; // Replace with your actual token
   const deviceId = "test_device"; // Replace with your actual device ID
   const zoneId = "main"; // Replace with your actual zone ID
 
@@ -39,15 +39,19 @@ const AdminDashboardScreen = () => {
 
   const fetchCurrentTemperature = async () => {
     try {
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem('authToken');
+
       const response = await axios.get(`http://localhost:8000/api/temperature/current`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Use the retrieved token
         },
         params: {
           device_id: deviceId,
           zone_id: zoneId,
         },
       });
+
       // Update the AC units with the current temperature
       setAcUnits((prevUnits) =>
         prevUnits.map((unit) => ({
@@ -59,7 +63,7 @@ const AdminDashboardScreen = () => {
       console.error('Error fetching current temperature:', error);
       Alert.alert('Error', 'Failed to fetch current temperature.');
     }
-  }
+  };
 
   const adjustTemperature = async (id: number, adjustment: number) => {
     setAcUnits((prevUnits) =>
@@ -73,17 +77,20 @@ const AdminDashboardScreen = () => {
         return unit;
       })
     );
-  }
-  
+  };
+
   const setTemperature = async (id: number, temperature: number, mode: string) => {
     try {
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem('authToken');
+
       const response = await axios.post(`http://localhost:8000/api/control/temperature`, {
         system_id: "test_system", // Replace with your actual system ID
         temperature: temperature,
         mode: mode, // Ensure this is a string
       }, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Use the retrieved token
         },
       });
       console.log('Temperature set successfully:', response.data);
@@ -91,37 +98,40 @@ const AdminDashboardScreen = () => {
       console.error('Error setting temperature:', error);
       Alert.alert('Error', 'Failed to set temperature.');
     }
-  }
+  };
 
   const togglePower = async (id: number) => {
-  setAcUnits((prevUnits) =>
-    prevUnits.map((unit) => {
-      if (unit.id === id) {
-        const newState = !unit.isOn; // This is a boolean
-        controlPower(unit.id, newState); // Ensure controlPower accepts a boolean
-        return { ...unit, isOn: newState };
-      }
-      return unit;
-    })
-  );
-}
+    setAcUnits((prevUnits) =>
+      prevUnits.map((unit) => {
+        if (unit.id === id) {
+          const newState = !unit.isOn; // This is a boolean
+          controlPower(unit.id, newState); // Ensure controlPower accepts a boolean
+          return { ...unit, isOn: newState };
+        }
+        return unit;
+      })
+    );
+  };
 
-const controlPower = async (id: number, state: boolean) => { // Ensure state is boolean
-  try {
-    const response = await axios.post(`http://localhost:8000/api/control/power`, {
-      system_id: "test_system", // Replace with your actual system ID
-      state: state, // This should be a boolean
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log('Power state changed successfully:', response.data);
-  } catch (error) {
-    console.error('Error changing power state:', error);
-    Alert.alert('Error', 'Failed to change power state.');
-  }
-}
+  const controlPower = async (id: number, state: boolean) => { // Ensure state is boolean
+    try {
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem('authToken');
+
+      const response = await axios.post(`http://localhost:8000/api/control/power`, {
+        system_id: "test_system", // Replace with your actual system ID
+        state: state, // This should be a boolean
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Use the retrieved token
+        },
+      });
+      console.log('Power state changed successfully:', response.data);
+    } catch (error) {
+      console.error('Error changing power state:', error);
+      Alert.alert('Error', 'Failed to change power state.');
+    }
+  };
 
   return (
     <ScrollView style={styles.container(theme)}>
@@ -178,8 +188,8 @@ const controlPower = async (id: number, state: boolean) => { // Ensure state is 
         </Text>
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
 // Styles with dynamic theming and additional design improvements
 const styles = {
@@ -190,7 +200,7 @@ const styles = {
   }),
   title: (theme: string): TextStyle => ({
     fontSize: 24,
-    fontWeight: "700" as TextStyle["fontWeight"],
+    fontWeight: "bold",
     marginBottom: 20,
     color: theme === "dark" ? "#FFFFFF" : "#000000",
   }),
@@ -207,7 +217,7 @@ const styles = {
   }),
   subtitle: (theme: string): TextStyle => ({
     fontSize: 18,
-    fontWeight: "600" as TextStyle["fontWeight"],
+    fontWeight: "600",
     color: theme === "dark" ? "#FFFFFF" : "#000000",
     marginBottom: 10,
   }),
@@ -223,6 +233,6 @@ const styles = {
     justifyContent: "space-between" as ViewStyle["justifyContent"],
     alignItems: "center" as ViewStyle["alignItems"],
   } as ViewStyle,
-}
+};
 
-export default AdminDashboardScreen
+export default AdminDashboardScreen;

@@ -4,6 +4,7 @@ import { useTheme } from "../components/ThemeContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ChartType = "Room Temp Over Time" | "Outdoor vs. Indoor Temp" | "Cost Saved";
 
@@ -12,8 +13,6 @@ const screenWidth = Dimensions.get("window").width - 40; // Account for padding
 
 // Your FastAPI base URL - keep this as localhost:8000
 const LOCAL_API_BASE_URL = 'http://localhost:8000';
-// Replace with your actual token
-const API_TOKEN = "YOUR_BEARER_TOKEN";
 // Replace with your actual device and zone IDs
 const DEVICE_ID = "test_device";
 const ZONE_ID = "main";
@@ -27,6 +26,21 @@ const StatsScreen: React.FC = () => {
   const [indoorTemp, setIndoorTemp] = useState<number>(0);
   const [temperatureHistory, setTemperatureHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  // Get auth token from AsyncStorage
+  useEffect(() => {
+    const getAuthToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        setAuthToken(token);
+      } catch (error) {
+        console.error('Error retrieving auth token:', error);
+      }
+    };
+    
+    getAuthToken();
+  }, []);
 
   useEffect(() => {
     Animated.timing(comfortAnim, {
@@ -37,23 +51,26 @@ const StatsScreen: React.FC = () => {
   }, [comfortLevel]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        await Promise.all([
-          fetchOutdoorTemperature(),
-          fetchIndoorTemperature(),
-          fetchIndoorTemperatureHistory(),
-        ]);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // Only fetch data if we have an auth token
+    if (authToken) {
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          await Promise.all([
+            fetchOutdoorTemperature(),
+            fetchIndoorTemperature(),
+            fetchIndoorTemperatureHistory(),
+          ]);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
-    fetchData();
-  }, []);
+      fetchData();
+    }
+  }, [authToken]); // Run when authToken changes
 
   const fetchOutdoorTemperature = async () => {
     const latitude = '28.7041'; // Example latitude for New Delhi
@@ -72,10 +89,12 @@ const StatsScreen: React.FC = () => {
   };
 
   const fetchIndoorTemperature = async () => {
+    if (!authToken) return false;
+    
     try {
       const response = await axios.get(`${LOCAL_API_BASE_URL}/api/temperature/current`, {
         headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
+          Authorization: `Bearer ${authToken}`,
         },
         params: {
           device_id: DEVICE_ID,
@@ -92,10 +111,12 @@ const StatsScreen: React.FC = () => {
   };
 
   const fetchIndoorTemperatureHistory = async () => {
+    if (!authToken) return false;
+    
     try {
       const response = await axios.get(`${LOCAL_API_BASE_URL}/api/temperature/history`, {
         headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
+          Authorization: `Bearer ${authToken}`,
         },
         params: {
           device_id: DEVICE_ID,
@@ -270,6 +291,18 @@ const StatsScreen: React.FC = () => {
     }
   };
 
+  // Show a loading or unauthorized state if no token
+  if (!authToken) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, styles.centerContent]}>
+          <Text style={styles.sectionTitle}>Not authenticated</Text>
+          <Text>Please log in to view statistics</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>
@@ -339,6 +372,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     padding: 20,
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   sectionTitle: {
     fontSize: 18,

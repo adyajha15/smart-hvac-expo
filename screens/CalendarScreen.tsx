@@ -5,6 +5,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "../components/ThemeContext";
 import { LineChart } from "react-native-chart-kit";
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AnalysisModal from './AnalysisModal';
 
 const CalendarScreen: React.FC = () => {
@@ -15,18 +16,17 @@ const CalendarScreen: React.FC = () => {
   const [energyData, setEnergyData] = useState<any[]>([
     { time: "12 AM", value: 0 },
     { time: "12 PM", value: 0 },
-  ]); // Initialize with default values
+  ]);
   const [costData, setCostData] = useState<any[]>([
     { time: "12 AM", value: 0 },
     { time: "12 PM", value: 0 },
-  ]); // Initialize with default values
+  ]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [analysisData, setAnalysisData] = useState<any>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const scaleAnim = new Animated.Value(1);
   
-  const token = "YOUR_BEARER_TOKEN"; // Replace with your actual token
   const systemId = "test_system"; // Replace with your actual system ID
 
   const handlePressIn = () => {
@@ -54,9 +54,12 @@ const CalendarScreen: React.FC = () => {
     setError(null);
     
     try {
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem('authToken');
+
       const response = await axios.get(`http://localhost:8000/api/analysis/cost/${systemId}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Use the retrieved token
         },
         params: {
           start_time: new Date(selectedDate).toISOString(),
@@ -89,7 +92,7 @@ const CalendarScreen: React.FC = () => {
       // Set default data on error
       setEnergyData([
         { time: "12 AM", value: 0 },
-        { time: "12 PM", value: 0 },
+        { time: " 12 PM", value: 0 },
       ]);
       
       setCostData([
@@ -111,7 +114,8 @@ const CalendarScreen: React.FC = () => {
     setError(null);
     
     try {
-      // Example data for anomaly detection
+      const token = await AsyncStorage.getItem('authToken');
+
       const requestData = {
         data: [
           {
@@ -124,9 +128,7 @@ const CalendarScreen: React.FC = () => {
         ],
       };
 
-      // Using Promise.all to handle multiple requests together
       const [anomalyResponse, costResponse, llmResponse] = await Promise.all([
-        // Fetch anomaly detection
         axios.post(`http://localhost:8000/api/analysis/anomaly/detect/${systemId}`, requestData, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,7 +138,6 @@ const CalendarScreen: React.FC = () => {
           return { data: { anomalies: [] } };
         }),
 
-        // Fetch cost analysis
         axios.get(`http://localhost:8000/api/analysis/cost/${systemId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -150,7 +151,6 @@ const CalendarScreen: React.FC = () => {
           return { data: { analysis: {} } };
         }),
 
-        // Fetch LLM analysis
         axios.post(`http://localhost:8000/api/analysis/optimize/llm/${systemId}`, {
           query: "Analyze system efficiency",
           context: {
@@ -168,12 +168,10 @@ const CalendarScreen: React.FC = () => {
         })
       ]);
 
-      // Get data from responses with fallbacks for safety
       const anomalies = anomalyResponse.data?.anomalies || [];
       const analysis = costResponse.data?.analysis || {};
       const suggestions = llmResponse.data?.data?.suggestions || [];
 
-      // Safely set analysis data with default values
       setAnalysisData({
         anomalies,
         total_energy_kwh: analysis.total_energy_kwh || 0,
@@ -185,7 +183,6 @@ const CalendarScreen: React.FC = () => {
         llm_analysis: suggestions,
       });
 
-      // Show modal
       setModalVisible(true);
     } catch (error) {
       console.error('Error analyzing data:', error);
@@ -249,14 +246,12 @@ const CalendarScreen: React.FC = () => {
   });
 
   const renderCharts = () => {
-    // Only render charts if we have valid data
-    if (energyData.length < 2 || costData.length < 2) {
+ if (energyData.length < 2 || costData.length < 2) {
       return <Text style={styles.loadingText}>No data available</Text>;
     }
 
     return (
       <>
-        {/* Energy Efficiency Chart */}
         <View style={styles.graphContainer}>
           <Text style={styles.sectionTitle}>Energy Efficiency</Text>
           <LineChart
@@ -273,9 +268,9 @@ const CalendarScreen: React.FC = () => {
             yAxisLabel=""
             yAxisSuffix=" kW"
             chartConfig={{
-              backgroundColor: "#1E1E1E",
-              backgroundGradientFrom: "#1E1E1E",
-              backgroundGradientTo: "#1E1E1E",
+              backgroundColor: theme === "dark" ? "#1E1E1E" : "#FFFFFF",
+              backgroundGradientFrom: theme === "dark" ? "#1E1E1E" : "#FFFFFF",
+              backgroundGradientTo: theme === "dark" ? "#1E1E1E" : "#FFFFFF",
               decimalPlaces: 2,
               color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
@@ -292,7 +287,6 @@ const CalendarScreen: React.FC = () => {
           />
         </View>
 
-        {/* Cost Used Chart */}
         <View style={styles.graphContainer}>
           <Text style={styles.sectionTitle}>Cost Used</Text>
           <LineChart
