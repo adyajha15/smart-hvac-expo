@@ -49,4 +49,3 @@ const MainTabs = () => {
 }
 
 export default MainTabs
-

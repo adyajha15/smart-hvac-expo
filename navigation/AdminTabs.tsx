@@ -53,4 +53,3 @@ const AdminTabs = () => {
 }
 
 export default AdminTabs
-

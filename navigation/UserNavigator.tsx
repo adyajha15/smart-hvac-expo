@@ -49,4 +49,3 @@ const UserNavigator = () => {
 }
 
 export default UserNavigator
-

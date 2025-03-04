@@ -51,4 +51,3 @@ const UserTabs = () => {
 }
 
 export default UserTabs
-

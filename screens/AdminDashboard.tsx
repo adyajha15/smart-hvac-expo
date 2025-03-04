@@ -6,7 +6,7 @@ import { DataTable } from "react-native-paper";
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000"; // Updated to Azure endpoint
 
 const AdminDashboard = () => {
   const { theme } = useTheme();
@@ -25,16 +25,16 @@ const AdminDashboard = () => {
       const token = await AsyncStorage.getItem('authToken');
 
       // Fetch Temperature Data
-      const tempResponse = await fetch(`${API_BASE_URL}/api/temperature/current?device_id=test_device&zone_id=main`, {
+      const tempResponse = await axios.get(`${API_BASE_URL}/api/temperature/current?device_id=test_device&zone_id=main`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const tempData = await tempResponse.json();
+      const tempData = tempResponse.data;
 
       // Fetch System Metrics
-      const metricsResponse = await fetch(`${API_BASE_URL}/api/status/metrics?system_id=test_system`, {
+      const metricsResponse = await axios.get(`${API_BASE_URL}/api/status/metrics?system_id=test_system`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const metricsData = await metricsResponse.json();
+      const metricsData = metricsResponse.data;
 
       if (tempData.temperature && metricsData.status === "success") {
         const updatedACData = [
@@ -150,7 +150,7 @@ const AdminDashboard = () => {
               </DataTable.Cell>
               <DataTable.Cell>
                 <TouchableOpacity style={styles.button} onPress={() => openModal(ac)}>
-                  <Text style={styles.buttonText}>View More</Text>
+                  <Text style={styles.buttonText}>View More</ Text>
                 </TouchableOpacity>
               </DataTable.Cell>
             </DataTable.Row>

@@ -11,8 +11,8 @@ type ChartType = "Room Temp Over Time" | "Outdoor vs. Indoor Temp" | "Cost Saved
 const chartTypes: ChartType[] = ["Room Temp Over Time", "Outdoor vs. Indoor Temp", "Cost Saved"];
 const screenWidth = Dimensions.get("window").width - 40; // Account for padding
 
-// Your FastAPI base URL - keep this as localhost:8000
-const LOCAL_API_BASE_URL = 'http://localhost:8000';
+// Your FastAPI base URL - updated to the new endpoint
+const LOCAL_API_BASE_URL = 'http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000';
 // Replace with your actual device and zone IDs
 const DEVICE_ID = "test_device";
 const ZONE_ID = "main";
@@ -101,11 +101,10 @@ const StatsScreen: React.FC = () => {
           zone_id: ZONE_ID,
         },
       });
-      setIndoorTemp(response.data.temperature);
+      setIndoorTemp(response.data.temperature); // Adjust based on actual response structure
       return true;
     } catch (error) {
       console.error('Error fetching indoor temperature:', error);
-      // Don't set fallback values - keep what was there before
       return false;
     }
   };
@@ -127,7 +126,7 @@ const StatsScreen: React.FC = () => {
       });
       
       if (response.data && response.data.history) {
-        setTemperatureHistory(response.data.history);
+        setTemperatureHistory(response.data.history); // Adjust based on actual response structure
       } else {
         console.warn('Invalid temperature history data format');
       }

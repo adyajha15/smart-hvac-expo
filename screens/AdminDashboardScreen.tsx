@@ -32,6 +32,7 @@ const AdminDashboardScreen = () => {
 
   const deviceId = "test_device"; // Replace with your actual device ID
   const zoneId = "main"; // Replace with your actual zone ID
+  const API_BASE_URL = "http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000"; // Updated to Azure endpoint
 
   useEffect(() => {
     fetchCurrentTemperature();
@@ -42,7 +43,7 @@ const AdminDashboardScreen = () => {
       // Retrieve the token from AsyncStorage
       const token = await AsyncStorage.getItem('authToken');
 
-      const response = await axios.get(`http://localhost:8000/api/temperature/current`, {
+      const response = await axios.get(`${API_BASE_URL}/api/temperature/current`, {
         headers: {
           Authorization: `Bearer ${token}`, // Use the retrieved token
         },
@@ -84,7 +85,7 @@ const AdminDashboardScreen = () => {
       // Retrieve the token from AsyncStorage
       const token = await AsyncStorage.getItem('authToken');
 
-      const response = await axios.post(`http://localhost:8000/api/control/temperature`, {
+      const response = await axios.post(`${API_BASE_URL}/api/control/temperature`, {
         system_id: "test_system", // Replace with your actual system ID
         temperature: temperature,
         mode: mode, // Ensure this is a string
@@ -118,7 +119,7 @@ const AdminDashboardScreen = () => {
       // Retrieve the token from AsyncStorage
       const token = await AsyncStorage.getItem('authToken');
 
-      const response = await axios.post(`http://localhost:8000/api/control/power`, {
+      const response = await axios.post(`${API_BASE_URL}/api/control/power`, {
         system_id: "test_system", // Replace with your actual system ID
         state: state, // This should be a boolean
       }, {

@@ -57,7 +57,7 @@ const CalendarScreen: React.FC = () => {
       // Retrieve the token from AsyncStorage
       const token = await AsyncStorage.getItem('authToken');
 
-      const response = await axios.get(`http://localhost:8000/api/analysis/cost/${systemId}`, {
+      const response = await axios.get(`http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000/api/analysis/cost/${systemId}`, {
         headers: {
           Authorization: `Bearer ${token}`, // Use the retrieved token
         },
@@ -129,7 +129,7 @@ const CalendarScreen: React.FC = () => {
       };
 
       const [anomalyResponse, costResponse, llmResponse] = await Promise.all([
-        axios.post(`http://localhost:8000/api/analysis/anomaly/detect/${systemId}`, requestData, {
+        axios.post(`http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000/api/analysis/anomaly/detect/${systemId}`, requestData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -138,7 +138,7 @@ const CalendarScreen: React.FC = () => {
           return { data: { anomalies: [] } };
         }),
 
-        axios.get(`http://localhost:8000/api/analysis/cost/${systemId}`, {
+        axios.get(`http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000/api/analysis/cost/${systemId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -151,7 +151,7 @@ const CalendarScreen: React.FC = () => {
           return { data: { analysis: {} } };
         }),
 
-        axios.post(`http://localhost:8000/api/analysis/optimize/llm/${systemId}`, {
+        axios.post(`http://hvacapi.b2a6gddyhrfvcpb6.westindia.azurecontainer.io:8000/api/analysis/optimize/llm/${systemId}`, {
           query: "Analyze system efficiency",
           context: {
             temperature: 23.5,
@@ -246,7 +246,7 @@ const CalendarScreen: React.FC = () => {
   });
 
   const renderCharts = () => {
- if (energyData.length < 2 || costData.length < 2) {
+    if (energyData.length < 2 || costData.length < 2) {
       return <Text style={styles.loadingText}>No data available</Text>;
     }
 

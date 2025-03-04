@@ -51,4 +51,3 @@ const AdminNavigator = () => {
 }
 
 export default AdminNavigator
-
