@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, Switch, Animated } from "react-native";
-import { Button } from "react-native-elements";
-import { Picker } from "@react-native-picker/picker";
-import { Ionicons } from "@expo/vector-icons";
-import axios from 'axios';
+"use client"
+
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Text, ScrollView, StyleSheet, Animated, StatusBar, SafeAreaView } from "react-native"
+import axios from "axios"
+
+// Import our custom components
+import ACPicker from "./ac-picker"
+import ACControlCard from "./ac-control-card"
+import WeatherSection from "./weather-section"
 
 const HomeScreen = () => {
-  const [selectedAC, setSelectedAC] = useState("1");
+  const [selectedAC, setSelectedAC] = useState("1")
   const [acUnits, setAcUnits] = useState([
     { id: "1", name: "Training Room AC", temp: 22, mode: "Cool", isOn: true },
     { id: "2", name: "Meeting Room AC", temp: 24, mode: "Heat", isOn: false },
@@ -27,35 +31,23 @@ const HomeScreen = () => {
   
   const animateChange = () => {
     Animated.sequence([
-      Animated.timing(animatedValue, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.timing(animatedValue, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start();
-  };
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedValue, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }
 
-  const adjustTemperature = (adjustment: number) => {
-    setAcUnits((prevUnits) =>
-      prevUnits.map((unit) =>
-        unit.id === selectedAC ? { ...unit, temp: unit.temp + adjustment } : unit
-      )
-    );
-    animateChange();
-  };
-
-  const togglePower = () => {
-    setAcUnits((prevUnits) =>
-      prevUnits.map((unit) =>
-        unit.id === selectedAC ? { ...unit, isOn: !unit.isOn } : unit
-      )
-    );
-  };
-
-  const changeMode = (newMode: string) => {
-    setAcUnits((prevUnits) =>
-      prevUnits.map((unit) =>
-        unit.id === selectedAC ? { ...unit, mode: newMode } : unit
-      )
-    );
-  };
+  const updateACUnit = (updates) => {
+    setAcUnits((prevUnits) => prevUnits.map((unit) => (unit.id === selectedAC ? { ...unit, ...updates } : unit)))
+    animateChange()
+  }
 
   const fetchWeatherData = async () => {
     const latitude = '28.7041'; // Example latitude for New Delhi
@@ -102,26 +94,26 @@ const HomeScreen = () => {
         sunset: '06:24 PM',
       });
     }
-  };
+  }, [])
 
   useEffect(() => {
-    fetchWeatherData();
-  }, []);
+    fetchWeatherData()
 
-  const selectedAcUnit = acUnits.find((unit) => unit.id === selectedAC);
+    // Optional: Set up a refresh interval for weather data
+    const intervalId = setInterval(fetchWeatherData, 30 * 60 * 1000) // Refresh every 30 minutes
+
+    return () => clearInterval(intervalId)
+  }, [fetchWeatherData])
+
+  const selectedAcUnit = acUnits.find((unit) => unit.id === selectedAC)
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Smart AC Control</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#eef2f3" />
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        <Text style={styles.title}>Smart AC Control</Text>
 
-      <View style={styles.cardContainer}>
-        <Text style={styles.label}>Select AC</Text>
-        <Picker selectedValue={selectedAC} onValueChange={(itemValue) => setSelectedAC(itemValue)} style={styles.picker}>
-          {acUnits.map((unit) => (
-            <Picker.Item key={unit.id} label={unit.name} value={unit.id} />
-          ))}
-        </Picker>
-      </View>
+        <ACPicker acUnits={acUnits} selectedAC={selectedAC} onSelectAC={setSelectedAC} />
 
       {selectedAcUnit && (
         <View style={styles.cardContainer}>
@@ -189,20 +181,26 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
-  title: { fontSize: 26, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
-  cardContainer: { marginBottom: 20, padding: 20, backgroundColor: "#f5f5f5", borderRadius: 10 },
-  label: { fontWeight: "bold", fontSize: 18 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 10 },
-  temperatureText: { fontSize: 36, fontWeight: "bold" },
-  switchContainer: { flexDirection: "row", alignItems: "center", marginTop: 10 },
-  powerText: { fontSize: 18, fontWeight: "bold", marginRight: 10 },
-  picker: { height: 50, width: "100%" },
-  weatherContainer: { marginTop: 20, height: 140, backgroundColor: "#e0e0e0", borderRadius: 10, overflow: "hidden", padding: 10 },
-  weatherScroll: { flexDirection: "row", alignItems: "center" },
-  weatherCard: { width: 160, justifyContent: "center", alignItems: "center", padding: 15, backgroundColor: "#fff", borderRadius: 8, marginHorizontal: 5, elevation: 2 },
-  weatherTitle: { fontSize: 14, fontWeight: "bold", color: "#333", textAlign: "center" },
-  weatherValue: { fontSize: 20, color: "#007AFF", textAlign: "center", marginTop: 5 },
-});
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#eef2f3",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#eef2f3",
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 20,
+    color: "#333",
+  },
+})
 
-export default HomeScreen;
+export default HomeScreen
+
