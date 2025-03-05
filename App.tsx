@@ -1,7 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native"; 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { ThemeProvider } from "./components/ThemeContext";
-import LoginScreen from "./screens/LoginScreen";
+import LoginScreen from "./screens/loginscreenbackup";
 import UserNavigator from "./navigation/UserNavigator";
 import AdminNavigator from "./navigation/AdminNavigator";
 
