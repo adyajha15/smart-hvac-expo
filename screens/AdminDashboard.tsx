@@ -21,8 +21,8 @@ const AdminDashboard = () => {
 
   const fetchACData = async () => {
     try {
-      // Retrieve the token from AsyncStorage
-      const token = await AsyncStorage.getItem('authToken');
+      // Hardcoded token
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuYW1lIiwiZXhwIjoxNzQxMDk2NjE3fQ.EADT8aJJoCajAk3FB4iCDRU1QPwoYq9FfuW6obKb9Qk";
 
       // Fetch Temperature Data
       const tempResponse = await fetch(`${API_BASE_URL}/api/temperature/current?device_id=test_device&zone_id=main`, {
@@ -36,11 +36,12 @@ const AdminDashboard = () => {
       });
       const metricsData = await metricsResponse.json();
 
+      // Check if data is available, if not use mock data
       if (tempData.temperature && metricsData.status === "success") {
         const updatedACData = [
           {
             id: 1,
-            name: "Living Room AC",
+            name: "Training Room AC",
             temp: tempData.temperature,
             energy: metricsData.data.summary.total_energy,
             power: metricsData.data.summary.avg_power,
@@ -49,12 +50,109 @@ const AdminDashboard = () => {
             current: 4.5, // Hardcoded
             frequency: 50, // Hardcoded
           },
+          {
+            id: 2,
+            name: "Meeting Room AC",
+            temp: tempData.temperature,
+            energy: metricsData.data.summary.total_energy,
+            power: metricsData.data.summary.avg_power,
+            efficiency: metricsData.data.summary.efficiency,
+            voltage: 220, // Hardcoded
+            current: 5, // Hardcoded
+            frequency: 50, // Hardcoded
+          },
+          {
+            id: 3,
+            name: "Conference Hall AC",
+            temp: tempData.temperature,
+            energy: metricsData.data.summary.total_energy,
+            power: metricsData.data.summary.avg_power,
+            efficiency: metricsData.data.summary.efficiency,
+            voltage: 220, // Hardcoded
+            current: 7, // Hardcoded
+            frequency: 50, // Hardcoded
+          },
         ];
         setAcData(updatedACData);
+      } else {
+        // Use mock data if API returns no data
+        const mockData = [
+          {
+            id: 1,
+            name: "Training Room AC",
+            temp: 24, // Mock temperature
+            energy: 150, // Mock energy
+            power: 200, // Mock power
+            efficiency: 0.85, // Mock efficiency
+            voltage: 220, // Hardcoded
+            current: 4.5, // Hardcoded
+            frequency: 50, // Hardcoded
+          },
+          {
+            id: 2,
+            name: "Meeting Room AC",
+            temp: 23, // Mock temperature
+            energy: 145, // Mock energy
+            power: 180, // Mock power
+            efficiency: 0.75, // Mock efficiency
+            voltage: 220, // Hardcoded
+            current: 5, // Hardcoded
+            frequency: 50, // Hardcoded
+          },
+          {
+            id: 3,
+            name: "Conference Hall AC",
+            temp: 24, // Mock temperature
+            energy: 165, // Mock energy
+            power: 170, // Mock power
+            efficiency: 0.70, // Mock efficiency
+            voltage: 220, // Hardcoded
+            current: 7, // Hardcoded
+            frequency: 50, // Hardcoded
+          },
+        ];
+        setAcData(mockData);
       }
     } catch (error) {
       console.error("Error fetching AC data:", error);
       Alert.alert("Error", "Failed to fetch AC data.");
+      // Use mock data in case of error
+      const mockData = [
+        {
+          id: 1,
+          name: "Living Room AC",
+          temp: 24, // Mock temperature
+          energy: 150, // Mock energy
+          power: 200, // Mock power
+          efficiency: 0.85, // Mock efficiency
+          voltage: 220, // Hardcoded
+          current: 4.5, // Hardcoded
+          frequency: 50, // Hardcoded
+        },
+        {
+          id: 2,
+          name: "Bedroom AC",
+          temp: 23, // Mock temperature
+          energy: 145, // Mock energy
+          power: 180, // Mock power
+          efficiency: 0.75, // Mock efficiency
+          voltage: 220, // Hardcoded
+          current: 5, // Hardcoded
+          frequency: 50, // Hardcoded
+        },
+        {
+          id: 3,
+          name: "Conference Hall AC",
+          temp: 24, // Mock temperature
+          energy: 165, // Mock energy
+          power: 170, // Mock power
+          efficiency: 0.70, // Mock efficiency
+          voltage: 220, // Hardcoded
+          current: 7, // Hardcoded
+          frequency: 50, // Hardcoded
+        },
+      ];
+      setAcData(mockData);
     } finally {
       setLoading(false);
     }

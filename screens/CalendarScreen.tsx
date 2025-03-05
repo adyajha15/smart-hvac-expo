@@ -54,12 +54,12 @@ const CalendarScreen: React.FC = () => {
     setError(null);
     
     try {
-      // Retrieve the token from AsyncStorage
-      const token = await AsyncStorage.getItem('authToken');
+      // Hardcoded token
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuYW1lIiwiZXhwIjoxNzQxMDk2NjE3fQ.EADT8aJJoCajAk3FB4iCDRU1QPwoYq9FfuW6obKb9Qk";
 
       const response = await axios.get(`http://localhost:8000/api/analysis/cost/${systemId}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use the retrieved token
+          Authorization: `Bearer ${token}`, // Use the hardcoded token
         },
         params: {
           start_time: new Date(selectedDate).toISOString(),
@@ -92,12 +92,23 @@ const CalendarScreen: React.FC = () => {
       // Set default data on error
       setEnergyData([
         { time: "12 AM", value: 0 },
-        { time: " 12 PM", value: 0 },
+        { time: "12 PM", value: 0 },
       ]);
       
       setCostData([
         { time: "12 AM", value: 0 },
         { time: "12 PM", value: 0 },
+      ]);
+
+      // Set mock data
+      setEnergyData([
+        { time: "12 AM", value: 5 }, // Mock energy data
+        { time: "12 PM", value: 10 },
+      ]);
+      
+      setCostData([
+        { time: "12 AM", value: 1 }, // Mock cost data
+        { time: "12 PM", value: 2 },
       ]);
     } finally {
       setIsLoading(false);
@@ -114,7 +125,8 @@ const CalendarScreen: React.FC = () => {
     setError(null);
     
     try {
-      const token = await AsyncStorage.getItem('authToken');
+      // Hardcoded token
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuYW1lIiwiZXhwIjoxNzQxMDk2NjE3fQ.EADT8aJJoCajAk3FB4iCDRU1QPwoYq9FfuW6obKb9Qk";
 
       const requestData = {
         data: [
@@ -188,6 +200,18 @@ const CalendarScreen: React.FC = () => {
       console.error('Error analyzing data:', error);
       setError('Failed to analyze data');
       Alert.alert('Error', 'Failed to analyze data. Please try again.');
+
+      // Set mock analysis data on error
+      setAnalysisData({
+        anomalies: [],
+        total_energy_kwh: 10, // Mock data
+        total_cost: 5, // Mock data
+        average_daily_cost: 0.5, // Mock data
+        peak_usage_kwh: 15, // Mock data
+        peak_usage_cost: 3, // Mock data
+        efficiency_score: 0.8, // Mock data
+        llm_analysis: ["Increase efficiency by reducing peak usage."], // Mock suggestions
+      });
     } finally {
       setIsLoading(false);
     }
@@ -246,7 +270,7 @@ const CalendarScreen: React.FC = () => {
   });
 
   const renderCharts = () => {
- if (energyData.length < 2 || costData.length < 2) {
+    if (energyData.length < 2 || costData.length < 2) {
       return <Text style={styles.loadingText}>No data available</Text>;
     }
 

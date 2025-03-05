@@ -39,12 +39,12 @@ const AdminDashboardScreen = () => {
 
   const fetchCurrentTemperature = async () => {
     try {
-      // Retrieve the token from AsyncStorage
-      const token = await AsyncStorage.getItem('authToken');
+      // Hardcoded token
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuYW1lIiwiZXhwIjoxNzQxMDk2NjE3fQ.EADT8aJJoCajAk3FB4iCDRU1QPwoYq9FfuW6obKb9Qk";
 
       const response = await axios.get(`http://localhost:8000/api/temperature/current`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use the retrieved token
+          Authorization: `Bearer ${token}`, // Use the hardcoded token
         },
         params: {
           device_id: deviceId,
@@ -61,7 +61,14 @@ const AdminDashboardScreen = () => {
       );
     } catch (error) {
       console.error('Error fetching current temperature:', error);
-      Alert.alert('Error', 'Failed to fetch current temperature.');
+      Alert.alert('Error', 'Failed to fetch current temperature. Using hardcoded values.');
+
+      // Hardcoded fallback data
+      setAcUnits([
+        { id: 1, name: "Training Room AC", temp: 22, energy: 1.5, voltage: 220, current: 4.5, frequency: 50, isOn: true },
+        { id: 2, name: "Meeting Room AC", temp: 24, energy: 1.2, voltage: 220, current: 3.6, frequency: 50, isOn: true },
+        { id: 3, name: "Conference Hall AC", temp: 23, energy: 1.8, voltage: 220, current: 5.4, frequency: 50, isOn: false },
+      ]);
     }
   };
 
@@ -81,8 +88,8 @@ const AdminDashboardScreen = () => {
 
   const setTemperature = async (id: number, temperature: number, mode: string) => {
     try {
-      // Retrieve the token from AsyncStorage
-      const token = await AsyncStorage.getItem('authToken');
+      // Hardcoded token
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuYW1lIiwiZXhwIjoxNzQxMDk2NjE3fQ.EADT8aJJoCajAk3FB4iCDRU1QPwoYq9FfuW6obKb9Qk";
 
       const response = await axios.post(`http://localhost:8000/api/control/temperature`, {
         system_id: "test_system", // Replace with your actual system ID
@@ -90,7 +97,7 @@ const AdminDashboardScreen = () => {
         mode: mode, // Ensure this is a string
       }, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use the retrieved token
+          Authorization: `Bearer ${token}`, // Use the hardcoded token
         },
       });
       console.log('Temperature set successfully:', response.data);
@@ -115,15 +122,15 @@ const AdminDashboardScreen = () => {
 
   const controlPower = async (id: number, state: boolean) => { // Ensure state is boolean
     try {
-      // Retrieve the token from AsyncStorage
-      const token = await AsyncStorage.getItem('authToken');
+      // Hardcoded token
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJuYW1lIiwiZXhwIjoxNzQxMDk2NjE3fQ.EADT8aJJoCajAk3FB4iCDRU1QPwoYq9FfuW6obKb9Qk";
 
       const response = await axios.post(`http://localhost:8000/api/control/power`, {
         system_id: "test_system", // Replace with your actual system ID
         state: state, // This should be a boolean
       }, {
         headers: {
-          Authorization: `Bearer ${token}`, // Use the retrieved token
+          Authorization: `Bearer ${token}`, // Use the hardcoded token
         },
       });
       console.log('Power state changed successfully:', response.data);

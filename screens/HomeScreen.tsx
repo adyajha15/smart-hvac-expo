@@ -8,16 +8,19 @@ import axios from 'axios';
 const HomeScreen = () => {
   const [selectedAC, setSelectedAC] = useState("1");
   const [acUnits, setAcUnits] = useState([
-    { id: "1", name: "AC 1", temp: 22, mode: "Cool", isOn: true },
-    { id: "2", name: "AC 2", temp: 24, mode: "Heat", isOn: false },
-    { id: "3", name: "AC 3", temp: 23, mode: "Fan", isOn: true },
+    { id: "1", name: "Training Room AC", temp: 22, mode: "Cool", isOn: true },
+    { id: "2", name: "Meeting Room AC", temp: 24, mode: "Heat", isOn: false },
+    { id: "3", name: "Conference Hall AC", temp: 23, mode: "Fan", isOn: true },
   ]);
 
   const [weatherData, setWeatherData] = useState({
-    temperature: '--',
-    humidity: '--',
-    windSpeed: '--',
-    precipitation: '--',
+    temperature: '33 °C / 16 °C',
+    humidity: '16 %',
+    windSpeed: '0 km/h',
+    precipitation: '0 mm',
+    forecast: 'Expect a bright, sunny day with low humidity and a mild breeze.',
+    sunrise: '06:39 AM',
+    sunset: '06:24 PM',
   });
 
   const animatedValue = new Animated.Value(0);
@@ -57,7 +60,8 @@ const HomeScreen = () => {
   const fetchWeatherData = async () => {
     const latitude = '28.7041'; // Example latitude for New Delhi
     const longitude = '77.1025'; // Example longitude for New Delhi
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,windspeed_10m,precipitation`;
+    const apiKey = "392a8c123c738bc4bc7bfdc51f41d2db";
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
 
     try {
       const response = await axios.get(url);
@@ -66,10 +70,14 @@ const HomeScreen = () => {
       const hourlyWeather = data.hourly;
 
       // Extract relevant data
-      const temperature = currentWeather.temperature;
-      const humidity = hourlyWeather.relativehumidity_2m[0];
-      const windSpeed = hourlyWeather.windspeed_10m[0];
-      const precipitation = hourlyWeather.precipitation[0];
+        const temperature = `${data.main.temp}°C`;
+        const humidity = `${data.main.humidity} %`;
+        const windSpeed = `${data.wind.speed} km/h`;
+        const precipitation = data.rain ? `${data.rain["1h"]} mm` : "0 mm"; 
+        const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+        const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+        const forecast = data.weather[0].description;
+
 
       // Update weather data state
       setWeatherData({
@@ -77,9 +85,22 @@ const HomeScreen = () => {
         humidity,
         windSpeed,
         precipitation,
+        forecast,
+        sunrise,
+        sunset,
       });
     } catch (error) {
       console.error('Error fetching weather data:', error);
+      // Set hardcoded data if fetching fails
+      setWeatherData({
+        temperature: '33 °C / 16 °C',
+        humidity: '16 %',
+        windSpeed: '0 km/h',
+        precipitation: '0 mm',
+        forecast: 'Expect a bright, sunny day with low humidity and a mild breeze.',
+        sunrise: '06:39 AM',
+        sunset: '06:24 PM',
+      });
     }
   };
 
@@ -131,27 +152,35 @@ const HomeScreen = () => {
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weatherScroll}>
           <View style={styles.weatherCard}>
             <Text style={styles.weatherTitle}>Air Quality Index</Text>
-            <Text style={styles.weatherValue}>--</Text>
+            <Text style={styles.weatherValue}>182</Text>
           </View>
           <View style={styles.weatherCard}>
             <Text style={styles.weatherTitle}>Temperature</Text>
-            <Text style={styles.weatherValue}>{weatherData.temperature}°C</Text>
+            <Text style={styles.weatherValue}>{weatherData.temperature}</Text>
           </View>
           <View style={styles.weatherCard}>
             <Text style={styles.weatherTitle}>Forecast</Text>
-            <Text style={styles.weatherValue}>--</Text>
+            <Text style={styles.weatherValue}>{weatherData.forecast}</Text>
           </View>
           <View style={styles.weatherCard}>
             <Text style={styles.weatherTitle}>Precipitation</Text>
-            <Text style={styles.weatherValue}>{weatherData.precipitation}%</Text>
+            <Text style={styles.weatherValue}>{weatherData.precipitation}</Text>
           </View>
           <View style={styles.weatherCard}>
             <Text style={styles.weatherTitle}>Humidity</Text>
-            <Text style={styles.weatherValue}>{weatherData.humidity}%</Text>
+            <Text style={styles.weatherValue}>{weatherData.humidity}</Text>
           </View>
           <View style={styles.weatherCard}>
             <Text style={styles.weatherTitle}>Wind Speed</Text>
-            <Text style={styles.weatherValue}>{weatherData.windSpeed} km/h</Text>
+            <Text style={styles.weatherValue}>{weatherData.windSpeed}</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Sunrise</Text>
+            <Text style={styles.weatherValue}>{weatherData.sunrise}</Text>
+          </View>
+          <View style={styles.weatherCard}>
+            <Text style={styles.weatherTitle}>Sunset</Text>
+            <Text style={styles.weatherValue}>{weatherData.sunset}</Text>
           </View>
         </ScrollView>
       </View>
