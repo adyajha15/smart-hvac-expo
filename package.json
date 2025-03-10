@@ -48,7 +48,7 @@
     "@react-navigation/native-stack": "^7.2.1",
     "@react-navigation/stack": "^7.1.2",
     "autoprefixer": "^10.4.20",
-    "axios": "^1.8.1",
+    "axios": "^1.8.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
@@ -59,7 +59,7 @@
     "expo-updates": "~0.27.1",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
-    "metro": "^0.81.2",
+    "metro": "^0.81.3",
     "next": "^14.2.24",
     "next-themes": "^0.4.4",
     "react": "^18.3.1",
@@ -88,8 +88,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@react-native-community/cli": "latest",
-    "@types/node": "^22.13.8",
+    "@react-native-community/cli": "^17.0.0",
+    "@types/node": "^22.13.9",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18",
     "@types/react-navigation": "^3.4.0",

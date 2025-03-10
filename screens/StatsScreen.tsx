@@ -20,7 +20,7 @@ const ZONE_ID = "main";
 const StatsScreen: React.FC = () => {
   const { theme } = useTheme(); // Assuming useTheme provides a theme
   const [selectedTimeFrame, setSelectedTimeFrame] = useState("Weekly");
-  const [comfortLevel, setComfortLevel] = useState(50);
+  const [comfortLevel, setComfortLevel] = useState(77);
   const comfortAnim = useRef(new Animated.Value(50)).current;
   const [outdoorTemp, setOutdoorTemp] = useState<number>(0);
   const [indoorTemp, setIndoorTemp] = useState<number>(0);
